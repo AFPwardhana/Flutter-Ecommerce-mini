@@ -74,7 +74,7 @@ class _EditProductsScreenState extends State<EditProductsScreen> {
     }
   }
 
-  void _saveForm() {
+  void _saveForm() async {
     final isValid = _form.currentState.validate();
     if (!isValid) {
       return;
@@ -84,40 +84,40 @@ class _EditProductsScreenState extends State<EditProductsScreen> {
       _isLoaded = true;
     });
     if (_editedProduct.id != null) {
-      Provider.of<ProductsProvider>(context, listen: false)
+      await Provider.of<ProductsProvider>(context, listen: false)
           .updateProduct(_editedProduct.id, _editedProduct);
-      setState(() {
-        _isLoaded = false;
-      });
-      Navigator.of(context).pop();
     } else {
-      Provider.of<ProductsProvider>(context, listen: false)
-          .addProduct(_editedProduct)
-          .catchError(
-        (onError) {
-          return showDialog<Null>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text('An error occurred!'),
-              content: Text('An error ${onError}'),
-              actions: [
-                FlatButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                  },
-                  child: Text('Okay'),
-                )
-              ],
-            ),
-          );
-        },
-      ).then((value) {
-        setState(() {
-          _isLoaded = false;
-        });
-        Navigator.of(context).pop();
-      });
+      try {
+        await Provider.of<ProductsProvider>(context, listen: false)
+            .addProduct(_editedProduct);
+      } catch (error) {
+        await showDialog<Null>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('An error occurred!'),
+            content: Text('An error $error'),
+            actions: [
+              FlatButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+                child: Text('Okay'),
+              )
+            ],
+          ),
+        );
+      }
+      // finally {
+      //   setState(() {
+      //     _isLoaded = false;
+      //   });
+      //   Navigator.of(context).pop();
+      // }
     }
+    setState(() {
+      _isLoaded = false;
+    });
+    Navigator.of(context).pop();
   }
 
   @override
