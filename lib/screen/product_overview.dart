@@ -19,72 +19,91 @@ class ProduckOverviewScreen extends StatefulWidget {
 
 class _ProduckOverviewScreenState extends State<ProduckOverviewScreen> {
   var _showOnlyfavorite = false;
-  var _isLoading = false;
+  // var _isLoading = false;
 
-  @override
-  void initState() {
-    setState(() {
-      _isLoading = true;
-    });
-    Provider.of<ProductsProvider>(context, listen: false)
-        .fetchProduct()
-        .then((value) {
-      setState(() {
-        _isLoading = false;
-      });
-    });
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   setState(() {
+  //     _isLoading = true;
+  //   });
+  //   Provider.of<ProductsProvider>(context, listen: false)
+  //       .fetchProduct()
+  //       .then((value) {
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //   });
+  //   super.initState();
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('MyShop'),
-        actions: [
-          PopupMenuButton(
-            onSelected: (FavoriteNot selectedValue) {
-              setState(() {
-                if (selectedValue == FavoriteNot.Favorite) {
-                  _showOnlyfavorite = true;
-                } else {
-                  _showOnlyfavorite = false;
-                }
-                // print(_showOnlyfavorite);
-              });
-            },
-            icon: Icon(Icons.more_vert),
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                child: Text('Favorite'),
-                value: FavoriteNot.Favorite,
-              ),
-              PopupMenuItem(
-                child: Text('All'),
-                value: FavoriteNot.All,
-              ),
-            ],
-          ),
-          Consumer<Cart>(
-            builder: (_, valCart, ch) => Badge(
-              child: ch,
-              value: valCart.itemCount.toString(),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.shopping_cart),
-              onPressed: () {
-                Navigator.of(context).pushNamed(CartScreen.routeName);
+        appBar: AppBar(
+          title: Text('MyShop'),
+          actions: [
+            PopupMenuButton(
+              onSelected: (FavoriteNot selectedValue) {
+                setState(() {
+                  if (selectedValue == FavoriteNot.Favorite) {
+                    _showOnlyfavorite = true;
+                  } else {
+                    _showOnlyfavorite = false;
+                  }
+                  // print(_showOnlyfavorite);
+                });
               },
+              icon: Icon(Icons.more_vert),
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  child: Text('Favorite'),
+                  value: FavoriteNot.Favorite,
+                ),
+                PopupMenuItem(
+                  child: Text('All'),
+                  value: FavoriteNot.All,
+                ),
+              ],
             ),
-          )
-        ],
-      ),
-      drawer: AppDrawer(),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(),
+            Consumer<Cart>(
+              builder: (_, valCart, ch) => Badge(
+                child: ch,
+                value: valCart.itemCount.toString(),
+              ),
+              child: IconButton(
+                icon: Icon(Icons.shopping_cart),
+                onPressed: () {
+                  Navigator.of(context).pushNamed(CartScreen.routeName);
+                },
+              ),
             )
-          : ProductsGrid(_showOnlyfavorite),
-    );
+          ],
+        ),
+        drawer: AppDrawer(),
+        body: FutureBuilder(
+          future: Provider.of<ProductsProvider>(context, listen: false)
+              .fetchProduct(),
+          builder: (ctx, snapshotData) {
+            if (snapshotData.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            } else {
+              if (snapshotData.error != null) {
+                return Center(
+                  child: Text('An error occured'),
+                );
+              } else {
+                return ProductsGrid(_showOnlyfavorite);
+              }
+            }
+          },
+        )
+        // _isLoading
+        //     ? Center(
+        //         child: CircularProgressIndicator(),
+        //       )
+        //     : ProductsGrid(_showOnlyfavorite),
+        );
   }
 }
