@@ -23,18 +23,18 @@ class Product with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> favoriteHandler() async {
+  Future<void> favoriteHandler(String authToken, String userId) async {
     final oldStatus = isfavorite;
     final url =
-        'https://flutter-update-bfe9c-default-rtdb.firebaseio.com/products/$id.json';
+        'https://flutter-update-bfe9c-default-rtdb.firebaseio.com/userFavorite/$userId/$id.json?auth=$authToken';
     isfavorite = !isfavorite;
     notifyListeners();
     try {
-      final response = await http.patch(
+      final response = await http.put(
         url,
-        body: json.encode({
-          'isFavorite': isfavorite,
-        }),
+        body: json.encode(
+          isfavorite,
+        ),
       );
       if (response.statusCode >= 400) {
         _setFavValue(oldStatus);
